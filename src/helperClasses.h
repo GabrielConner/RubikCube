@@ -138,23 +138,15 @@ struct RubikNodeList {
   RubikNode* nodeNext;
   RubikNode* nodeEnd;
 
-  size_t* indexBegin;
-  size_t* indexNext;
-  size_t* indexEnd;
-
   size_t nodeNumberNext;
   size_t nodeBlockCount;
-  size_t indexBlockCount;
 
   RubikNode* nodeBlock;
-  size_t* indexBlock;
 
   size_t loadedNodeBlock;
-  size_t loadedIndexBlock;
 
 
   std::fstream nodeFile;
-  std::fstream indexFile;
 
 
   size_t IndexOf(uint8_t* pos) const;
@@ -171,13 +163,9 @@ struct RubikNodeList {
 
   ~RubikNodeList() {
     nodeFile.flush();
-    indexFile.flush();
     nodeFile.close();
-    indexFile.close();
     free(nodeBegin);
-    free(indexBegin);
     free(nodeBlock);
-    free(indexBlock);
   }
 };
 

@@ -124,21 +124,22 @@ int main() {
 
 
   RubikCube rubik(rubikSize);
-  rubik.Rotate('f', 'c', 0);
-  rubik.Rotate('l', 'c', 0);
-  rubik.Rotate('f', 'c', 0);
-  rubik.Rotate('l', 'c', 0);
-  rubik.Rotate('f', 'c', 0);
-  rubik.Rotate('l', 'c', 0);
-  rubik.Rotate('f', 'c', 0);
+  //rubik.Rotate('f', 'c', 0);
+  //rubik.Rotate('l', 'c', 0);
+  //rubik.Rotate('f', 'c', 0);
+  //rubik.Rotate('l', 'c', 0);
+  //rubik.Rotate('f', 'c', 0);
+  //rubik.Rotate('l', 'c', 0);
+  //rubik.Rotate('f', 'c', 0);
   
 
-  //rubik.Rotate('f', 'c', 0);
-  //rubik.Rotate('r', 'c', 0);
-  //rubik.Rotate('d', 'c', 0);
-  //rubik.Rotate('u', 'c', 0);
-  //rubik.Rotate('l', 'c', 0);
-  //rubik.Rotate('b', 'c', 0);
+  rubik.Rotate('f', 'c', 0);
+  rubik.Rotate('r', 'c', 0);
+  rubik.Rotate('d', 'c', 0);
+  rubik.Rotate('u', 'c', 0);
+  rubik.Rotate('l', 'c', 0);
+  rubik.Rotate('b', 'c', 0);
+  rubik.Rotate('l', 'a', 0);
 
   std::queue<RubikActionSingle> randomQueue;
   std::deque<RubikActionSingle> actionList;
@@ -146,20 +147,21 @@ int main() {
 
   {
     std::vector<RubikActionSingle> randomList = {
-      {'f', 'c', 0},
-      {'l', 'c', 0},
-      {'f', 'c', 0},
-      {'l', 'c', 0},
-      {'f', 'c', 0},
-      {'l', 'c', 0},
-      {'f', 'c', 0},
-
       //{'f', 'c', 0},
-      //{'r', 'c', 0},
-      //{'d', 'c', 0},
-      //{'u', 'c', 0},
       //{'l', 'c', 0},
-      //{'b', 'c', 0},
+      //{'f', 'c', 0},
+      //{'l', 'c', 0},
+      //{'f', 'c', 0},
+      //{'l', 'c', 0},
+      //{'f', 'c', 0},
+
+      {'f', 'c', 0},
+      {'r', 'c', 0},
+      {'d', 'c', 0},
+      {'u', 'c', 0},
+      {'l', 'c', 0},
+      {'b', 'c', 0},
+      {'l', 'a', 0},
     };
     actionList = rubik.Solve();
 

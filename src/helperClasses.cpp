@@ -4,23 +4,26 @@
 
 // TODO when this is at 1GiB it misses solution and continues to depth 7
 // At 5MiB file is only about 2.45GiB
-constexpr size_t nodeWindowSize = 5242880ui64;
-constexpr size_t indexWindowSize = 5242880ui64;
+constexpr size_t nodeUsageMaxSize = 1073741824ui64;
+constexpr size_t nodeViewMaxSize = 131072ui64;
 
 
 
-constexpr size_t nodeViewSize = nodeWindowSize / sizeof(RubikNode);
-constexpr size_t indexTreeSize = indexWindowSize / sizeof(size_t);
+constexpr size_t nodeUsageCount = nodeUsageMaxSize / sizeof(RubikNode);
+constexpr size_t nodeViewCount = nodeViewMaxSize / sizeof(RubikNode);
 
-constexpr size_t nodeViewSizeBytes = nodeViewSize * sizeof(RubikNode);
-constexpr size_t indexTreeSizeBytes = indexTreeSize * sizeof(size_t);
+
+constexpr size_t nodeUsageBytes = nodeUsageCount * sizeof(RubikNode);
+constexpr size_t nodeViewSizeBytes = nodeViewCount * sizeof(RubikNode);
+
+
 
 constexpr const char* rubikNodeSwapFileDir = "./rubikNodeView.sfrn";
 constexpr const char* indexTreeSwapFileDir = "./rubikIndexView.sfi";
 
 
-static_assert(nodeWindowSize >= sizeof(RubikNode));
-static_assert(indexWindowSize >= sizeof(size_t));
+static_assert(nodeUsageMaxSize >= sizeof(RubikNode));
+static_assert(nodeViewMaxSize >= sizeof(RubikNode));
 
 
 
@@ -57,10 +60,9 @@ T* searchNearest(T* buf, T val, size_t length) {
 
 
 
-RubikNodeList::RubikNodeList() : nodeBegin(nullptr), nodeNext(nullptr), nodeEnd(nullptr), indexBegin(nullptr), indexNext(nullptr),
-indexEnd(nullptr), nodeNumberNext(0), nodeBlock(nullptr), indexBlock(nullptr), loadedNodeBlock(0), loadedIndexBlock(0), indexBlockCount(0), nodeBlockCount(0),
-nodeFile(rubikNodeSwapFileDir, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc),
-indexFile(indexTreeSwapFileDir, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc)
+RubikNodeList::RubikNodeList() : nodeBegin(nullptr), nodeNext(nullptr), nodeEnd(nullptr),
+nodeNumberNext(0), nodeBlock(nullptr), loadedNodeBlock(-1), nodeBlockCount(0),
+nodeFile(rubikNodeSwapFileDir, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc)
 {}
 
 
@@ -72,24 +74,21 @@ size_t RubikNodeList::IndexOf(uint8_t* pos) const {
 
 
 size_t RubikNodeList::GetNext(RubikNode set) {
-  if (!indexBegin) {
-    indexBegin = (size_t*)calloc(indexTreeSize, sizeof(size_t));
-    indexEnd = indexBegin + indexTreeSize;
-    indexNext = indexBegin;
+  //if (!indexBegin) {
+  //  indexBegin = (size_t*)calloc(indexTreeSize, sizeof(size_t));
+  //  indexEnd = indexBegin + indexTreeSize;
+  //  indexNext = indexBegin;
 
-    if (!indexFile.is_open())
-      indexFile.open(indexTreeSwapFileDir, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
-  }
+  //  if (!indexFile.is_open())
+  //    indexFile.open(indexTreeSwapFileDir, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
+  //}
 
   if (!nodeBegin) {
-    nodeBegin = (RubikNode*)calloc(nodeViewSize, sizeof(RubikNode));
+    nodeBegin = (RubikNode*)calloc(nodeUsageCount, sizeof(RubikNode));
 
-    nodeEnd = nodeBegin + nodeViewSize;
+    nodeEnd = nodeBegin + nodeUsageCount;
     nodeNext = nodeBegin;
     nodeNext++;
-
-    if (!nodeFile.is_open())
-      nodeFile.open(rubikNodeSwapFileDir, std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
 
     *nodeBegin = set;
     return nodeNumberNext++;
@@ -97,28 +96,28 @@ size_t RubikNodeList::GetNext(RubikNode set) {
 
 
   if (nodeNext == nodeEnd) {
-    nodeFile.seekp(0, std::ios::end);
-    nodeFile.write((char*)nodeBegin, nodeViewSizeBytes);
+    nodeFile.seekp(nodeBlockCount * nodeUsageBytes);
+    nodeFile.write((char*)nodeBegin, nodeUsageBytes);
     nodeFile.flush();
     nodeFile.clear(std::ios::goodbit);
 
-    if (indexNext == indexEnd) {
-      indexFile.seekp(0, std::ios::end);
-      indexFile.write((char*)indexBegin, indexTreeSizeBytes);
-      indexFile.flush();
-      indexFile.clear(std::ios::goodbit);
+    //if (indexNext == indexEnd) {
+    //  indexFile.seekp(0, std::ios::end);
+    //  indexFile.write((char*)indexBegin, indexTreeSizeBytes);
+    //  indexFile.flush();
+    //  indexFile.clear(std::ios::goodbit);
 
-      indexBlockCount = 0;
-      indexNext = indexBegin;
-    }
+    //  indexBlockCount = 0;
+    //  indexNext = indexBegin;
+    //}
 
     nodeNext = nodeBegin;
 
-    *indexNext = nodeBlockCount * nodeViewSize;
+    //*indexNext = nodeBlockCount * nodeUsageCount;
 
     nodeBlockCount++;
-    indexBlockCount++;
-    indexNext++;
+    //indexBlockCount++;
+    //indexNext++;
   }
 
   *nodeNext = set;
@@ -130,23 +129,51 @@ size_t RubikNodeList::GetNext(RubikNode set) {
 
 
 RubikNode* RubikNodeList::Find(size_t index) {
-  if (!indexBlock)
-    indexBlock = (size_t*)calloc(indexTreeSize, sizeof(size_t));
-  if (!nodeBlock)
-    nodeBlock = (RubikNode*)calloc(nodeViewSize, sizeof(RubikNode));
+  //if (!indexBlock)
+  //  indexBlock = (size_t*)calloc(indexTreeSize, sizeof(size_t));
 
-  if (index >= nodeBlockCount * nodeViewSize) {
-    RubikNode* t = nodeBegin + (index - nodeBlockCount * nodeViewSize);
+  if (!nodeBegin) {
+    std::cout << "No node data around\n";
+    return nullptr;
+  }
+
+  if (index >= nodeBlockCount * nodeUsageCount)
+    return nodeBegin + (index - nodeBlockCount * nodeUsageCount);
+
+
+
+  if (!nodeBlock)
+    nodeBlock = (RubikNode*)calloc(nodeViewCount, sizeof(RubikNode));
+
+
+  if (index >= nodeNumberNext) {
+    std::cout << "Search for " << index << " failed\n";
+    return nullptr;
+  }
+
+  if (index >= loadedNodeBlock && index < loadedNodeBlock + nodeViewCount)
+    return nodeBlock + (index - loadedNodeBlock);
+
+  loadedNodeBlock = index - std::min<size_t>(index, nodeViewCount - 1);
+  nodeFile.seekg(loadedNodeBlock * sizeof(RubikNode));
+  nodeFile.read((char*)nodeBlock, nodeViewSizeBytes);
+  return nodeBlock + (index - loadedNodeBlock);
+
+
+
+
+  /*if (index >= nodeBlockCount * nodeUsageCount) {
+    RubikNode* t = nodeBegin + (index - nodeBlockCount * nodeUsageCount);
     return t;
   }
 
 
   size_t* searchIndex = searchNearest(indexBegin, index, indexBlockCount);
-  if (searchIndex != nullptr && index <= *searchIndex + nodeViewSize) {
+  if (searchIndex != nullptr && index <= *searchIndex + nodeUsageCount) {
 
     if (loadedNodeBlock != *searchIndex) {
       nodeFile.seekg((*searchIndex) * sizeof(RubikNode));
-      nodeFile.read((char*)nodeBlock, nodeViewSizeBytes);
+      nodeFile.read((char*)nodeBlock, nodeUsageBytes);
       nodeFile.clear(std::ios::goodbit);
 
       loadedNodeBlock = *searchIndex;
@@ -169,7 +196,7 @@ RubikNode* RubikNodeList::Find(size_t index) {
   do {
     searchIndex = searchNearest(indexBlock, index, indexFile.gcount() / sizeof(size_t));
 
-    if (searchIndex == nullptr || index >= *searchIndex + nodeViewSize) {
+    if (searchIndex == nullptr || index >= *searchIndex + nodeUsageCount) {
       indexFile.read((char*)indexBlock, indexTreeSizeBytes);
       loadedIndexBlock++;
 
@@ -179,36 +206,24 @@ RubikNode* RubikNodeList::Find(size_t index) {
 
     if (loadedNodeBlock != *searchIndex) {
       nodeFile.seekg((*searchIndex) * sizeof(RubikNode));
-      nodeFile.read((char*)nodeBlock, nodeViewSizeBytes);
+      nodeFile.read((char*)nodeBlock, nodeUsageBytes);
       nodeFile.clear(std::ios::goodbit);
       loadedNodeBlock = *searchIndex;
     }
-    return nodeBlock + (index - (*searchIndex) * nodeViewSize);
+    return nodeBlock + (index - (*searchIndex) * nodeUsageCount);
   } while (!nodeFile.eof());
   indexFile.clear(std::ios::goodbit);
 
-  return nullptr;
+  return nullptr;*/
 }
 
 
 
 void RubikNodeList::Clear() {
-  free(nodeBegin);
-  free(indexBegin);
-  free(nodeBlock);
-  free(indexBlock);
+  loadedNodeBlock = -1;
   nodeNumberNext = 0;
   nodeBlockCount = 0;
-  indexBlockCount = 0;
-  nodeBegin = nullptr;
-  indexBegin = nullptr;
-  nodeBlock = nullptr;
-  indexBlock = nullptr;
-
-  nodeFile.flush();
-  nodeFile.close();
-  indexFile.flush();
-  indexFile.close();
+  nodeNext = nodeBegin;
 }
 
 size_t RubikNodeList::Size() const {
