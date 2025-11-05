@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <Extensions>cpp;c;cc;cxx;c++</Extensions>
+    </Filter>
+    <Filter Include="include">
+      <Extensions>h;hh;hpp;hxx;h++;hm</Extensions>
+    </Filter>
+    <Filter Include="fileShaders">
+      <Extensions>vert;frag;comp;geom;tess</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Users\gabri\Desktop\Desktop\Coding\PersonalPackages\glad\src\glad.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\gabri\Desktop\Desktop\Coding\PersonalPackages\vector\src\vector.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\gabri\Desktop\Desktop\Coding\PersonalPackages\shaderHandling\src\shaderHandling.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rubikCube.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\helperClasses.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\gabri\Desktop\Desktop\Coding\PersonalPackages\animateValue\src\animateValue.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\rubikCube.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\helperClasses.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\shader.frag">
+      <Filter>fileShaders</Filter>
+    </None>
+    <None Include="shaders\shader.geom">
+      <Filter>fileShaders</Filter>
+    </None>
+    <None Include="shaders\shader.vert">
+      <Filter>fileShaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
