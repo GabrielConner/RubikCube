@@ -22,7 +22,7 @@ public:
   };
 
 
-  static StillCubeCorner cornerStillList[8];
+  static StillCubeCorner cornerRotationStillList[8];
 
 
 
@@ -52,7 +52,7 @@ public:
   uint8_t* up;
 
   
-  CubeCorner* corners;
+  CubeCorner* cubieCorners;
   CubeEdge* edges;
 
   short centerLine;
@@ -91,7 +91,7 @@ public:
 
   std::deque<RubikActionSingle> Solve();
 
-  unsigned int MaxScoreOf(unsigned short distance, std::map<size_t, uint8_t>& corners, std::map<size_t, uint8_t>& firstEdges, std::map<size_t, uint8_t>& secondEdges);
+  unsigned int MaxScoreOf(unsigned short distance, std::map<size_t, uint8_t>& cubieCorners, std::map<size_t, uint8_t>& firstEdges, std::map<size_t, uint8_t>& secondEdges);
 
   void Reset();
 
@@ -106,8 +106,8 @@ public:
       delete[](cubiePlanes);
     if (edges)
       delete[](edges);
-    if (corners)
-      delete[](corners);
+    if (cubieCorners)
+      delete[](cubieCorners);
   }
 };
 

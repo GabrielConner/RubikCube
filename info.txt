@@ -1,0 +1,21 @@
+Starting depth at 0
+Max depth at 1 : 18 : 18 : 0ms
+Max depth at 2 : 261 : 243 : 0ms
+Max depth at 3 : 3135 : 2874 : 1ms
+Max depth at 4 : 31135 : 28000 : 11ms
+Max depth at 5 : 236551 : 205416 : 95ms
+Max depth at 6 : 1405067 : 1168516 : 582ms
+Max depth at 7 : 6807695 : 5402628 : 3216ms
+Max depth at 8 : 27583871 : 20776176 : 15228ms
+Max depth at 9 : 72975487 : 45391616 : 64093ms
+Max depth at 10 : 88115103 : 15139616 : 166529ms
+Max depth at 11 : 88179839 : 64736 : 199399ms
+Sum : 772819906
+Average : 8.76413
+Nodes generated : 88179839
+High number : 11
+Low number : 0
+High index : 88179839
+Filled : 88179840
+Empty : 0
+Total Time : 199593ms

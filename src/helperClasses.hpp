@@ -4,7 +4,7 @@
 #include <fstream>
 #include <pPack/vector.h>
 
-#define ReverseDirection(i) i == 2 ? 2 : (i == 0 ? 1 : 0)
+#define ReverseDirection(i) (i == 2 ? 2 : (i == 0 ? 1 : 0))
 
 
 struct Vertex {
@@ -24,6 +24,17 @@ struct StillCubeCorner {
   StillCubeCorner(uint8_t F1, uint8_t F2, uint8_t F3) : f1(F1), f2(F2), f3(F3) {}
 };
 
+
+
+struct StillCubeEdge {
+  uint8_t f1;
+  uint8_t f2;
+
+  StillCubeEdge(uint8_t F1, uint8_t F2) : f1(F1), f2(F2) {}
+};
+
+
+
 struct CubeCorner {
   uint8_t* f1;
   uint8_t* f2;
@@ -34,13 +45,33 @@ struct CubeCorner {
 
   uint8_t shiftFrom(const StillCubeCorner& corn) {
     if (*f2 == corn.f2)
-      return 1;
+      return 0;
     if (*f1 == corn.f2)
-      return 3;
-    return 2;
+      return 2;
+    return 1;
   }
 
+  CubeCorner() : f1(nullptr), f2(nullptr), f3(nullptr), index(0) {}
   CubeCorner(uint8_t* F1, uint8_t* F2, uint8_t* F3, uint8_t Index) : f1(F1), f2(F2), f3(F3), index(Index) {}
+};
+
+
+
+struct CubeEdge {
+  uint8_t* f1;
+  uint8_t* f2;
+
+  uint8_t index;
+
+  uint8_t shiftFrom(const StillCubeEdge& edge) {
+    if (*f1 == edge.f1)
+      return 0;
+    return 1;
+  }
+
+
+  CubeEdge() : f1(nullptr), f2(nullptr), index(0) {}
+  CubeEdge(uint8_t* F1, uint8_t* F2, uint8_t Index) : f1(F1), f2(F2), index(Index) {}
 };
 
 
@@ -68,13 +99,33 @@ struct HeuristicPair {
       data = (data & 0x0F) | (val << 4);
   }
 
-  void SetIfLess(size_t index, uint8_t val) {
+  bool SetIfEmpty(size_t index, uint8_t val) {
     if ((index & 1) == 0) {
-      if (First() > val)
+      if (First() == 0x0f) {
         data = (data & 0xF0) | val;
+        return true;
+      }
+    } else if (Second() == 0x0f) {
+      data = (data & 0x0F) | (val << 4);
+      return true;
+    }
+
+    return false;
+  }
+
+
+  bool SetIfLess(size_t index, uint8_t val) {
+    if ((index & 1) == 0) {
+      if (First() > val) {
+        data = (data & 0xF0) | val;
+        return true;
+      }
     } else if (Second() > val) {
       data = (data & 0x0F) | (val << 4);
+      return true;
     }
+
+    return false;
   }
 
 
@@ -96,13 +147,29 @@ struct RubikActionSingle {
     return face == other.face && direction == other.direction && layer == other.layer;
   }
 
+  bool operator>(const RubikActionSingle& other) const {
+    return face > other.face || (face == other.face && direction > other.direction);
+  }
+  bool operator<(const RubikActionSingle& other) const {
+    return face < other.face || (face == other.face && direction < other.direction);
+  }
+  bool operator>=(const RubikActionSingle& other) const {
+    return face > other.face || (face == other.face && direction >= other.direction);
+  }
+  bool operator<=(const RubikActionSingle& other) const {
+    return face < other.face || (face == other.face && direction <= other.direction);
+  }
+
+
+
+
   uint8_t ReversedDirection() const {
     uint8_t dir = direction;
     if (dir == 0)
-      dir = 1;
+      return 1;
     else if (dir == 1)
-      dir = 0;
-    return dir;
+      return 0;
+    return 2;
   }
 };
 
@@ -248,8 +315,6 @@ struct RubikNodeList {
   RubikNode* Find(size_t pos);
 
   size_t GetNext(RubikNode set);
-
-  RubikNode* GetNextNode(RubikNode set);
 
   void Clear();
 

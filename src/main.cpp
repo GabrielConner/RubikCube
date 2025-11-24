@@ -19,8 +19,9 @@
 #include "pPack/shaderHandling.h"
 #include "pPack/animateValue.h"
 
-#include "rubikCube.h"
-#include "helperClasses.h"
+#include "rubikCube.hpp"
+#include "helperClasses.hpp"
+#include "cornerCube.hpp"
 
 using namespace ::pPack;
 using namespace ::pPack::vector;
@@ -33,13 +34,13 @@ void glfwWindowResizedCallback(GLFWwindow* window, int width, int height);
 void fillRotatingBuffer(bool* buffer, RubikActionSingle action);
 void setVAO();
 void fillVerticesBuffer(Vertex* vertices);
-void fillRubikColorBuffer(Vector4* colors, RubikCube* cube);
+void fillRubikColorBuffer(Vector4* colors, CornerCube* cube);
 
 
 namespace {
 int screenWidth = 1280;
 int screenHeight = 720;
-float screenAspect = 1280.0 / 720.0;
+float screenAspect = 1280.0f / 720.0f;
 
 bool keyPressed[349];
 bool keyHeld[349];
@@ -80,7 +81,7 @@ constexpr float cubieSize = 1.f;
 constexpr float cubieGap = cubieOffset - cubieSize;
 
 
-constexpr unsigned int rubikSize = 3;
+constexpr unsigned int rubikSize = 2;
 constexpr unsigned int rubikRE = rubikSize - 1;
 constexpr unsigned int rubikCE = (rubikSize - 1) * rubikSize;
 constexpr unsigned int rubikAE = (rubikSize  * rubikSize) - 1;
@@ -104,42 +105,47 @@ constexpr unsigned int randomSteps = 7;
 
 
 
-
+void GenerateHeuristicDatabases();
 
 
 int main() {
-  std::string cDir;
-  std::string cPath;
+  GenerateHeuristicDatabases();
 
-  {
-    std::stringstream dayTimeSS;
-    dayTimeSS << std::chrono::system_clock::now();
-    cPath = dayTimeSS.str();
-    cPath.erase(std::remove(cPath.begin(), cPath.end(), ' '), cPath.end());
-    std::replace(cPath.begin(), cPath.end(), ':', '-');
-    std::replace(cPath.begin(), cPath.end(), '.', '-');
-    cDir = std::format("./SolvedCubes/{:}x{:}Cubes/", rubikSize, rubikSize);
-    cPath = std::format("{:}{:}steps--{:}.txt", cDir, randomSteps, cPath);
-  }
+  return 1;
+
+  //std::string cDir;
+  //std::string cPath;
+
+  //{
+  //  std::stringstream dayTimeSS;
+  //  dayTimeSS << std::chrono::system_clock::now();
+  //  cPath = dayTimeSS.str();
+  //  cPath.erase(std::remove(cPath.begin(), cPath.end(), ' '), cPath.end());
+  //  std::replace(cPath.begin(), cPath.end(), ':', '-');
+  //  std::replace(cPath.begin(), cPath.end(), '.', '-');
+  //  cDir = std::format("./SolvedCubes/{:}x{:}Cubes/", rubikSize, rubikSize);
+  //  cPath = std::format("{:}{:}steps--{:}.txt", cDir, randomSteps, cPath);
+  //}
 
 
-  RubikCube rubik(rubikSize);
-  //rubik.Rotate('f', 'c', 0);
-  //rubik.Rotate('l', 'c', 0);
-  //rubik.Rotate('f', 'c', 0);
-  //rubik.Rotate('l', 'c', 0);
-  //rubik.Rotate('f', 'c', 0);
-  //rubik.Rotate('l', 'c', 0);
-  //rubik.Rotate('f', 'c', 0);
+  CornerCube rubik;
+  //rubik.Rotate(4, 0, 0);
+  //rubik.Rotate(1, 0, 0);
+  //rubik.Rotate(4, 0, 0);
+  //rubik.Rotate(1, 0, 0);
+  //rubik.Rotate(4, 0, 0);
+  //rubik.Rotate(1, 0, 0);
+  //rubik.Rotate(4, 0, 0);
   
 
-  rubik.Rotate('f', 'c', 0);
-  rubik.Rotate('r', 'c', 0);
-  rubik.Rotate('d', 'c', 0);
-  rubik.Rotate('u', 'c', 0);
-  rubik.Rotate('l', 'c', 0);
-  rubik.Rotate('b', 'c', 0);
-  rubik.Rotate('l', 'a', 0);
+  //rubik.Rotate(4, 0, 0);
+  //rubik.Rotate(3, 0, 0);
+  //rubik.Rotate(2, 0, 0);
+  //rubik.Rotate(5, 0, 0);
+  //rubik.Rotate(1, 0, 0);
+  //rubik.Rotate(0, 0, 0);
+  //rubik.Rotate(1, 1, 0);
+  //rubik.Rotate(5, 2, 0);
 
   std::queue<RubikActionSingle> randomQueue;
   std::deque<RubikActionSingle> actionList;
@@ -147,49 +153,106 @@ int main() {
 
   {
     std::vector<RubikActionSingle> randomList = {
-      //{'f', 'c', 0},
-      //{'l', 'c', 0},
-      //{'f', 'c', 0},
-      //{'l', 'c', 0},
-      //{'f', 'c', 0},
-      //{'l', 'c', 0},
-      //{'f', 'c', 0},
+      //{4, 0, 0},
+      //{1, 0, 0},
+      //{4, 0, 0},
+      //{1, 0, 0},
+      //{4, 0, 0},
+      //{1, 0, 0},
+      //{4, 0, 0},
 
-      {'f', 'c', 0},
-      {'r', 'c', 0},
-      {'d', 'c', 0},
-      {'u', 'c', 0},
-      {'l', 'c', 0},
-      {'b', 'c', 0},
-      {'l', 'a', 0},
+      //{4, 0, 0},
+      //{3, 0, 0},
+      //{2, 0, 0},
+      //{5, 0, 0},
+      //{1, 0, 0},
+      //{0, 0, 0},
+      //{1, 1, 0},
+      //{5, 2, 0},
     };
-    actionList = rubik.Solve();
+    //actionList = rubik.Solve();
+    actionList = {
+      {4, 0, 0},
+      {4, 1, 0},
+      {4, 2, 0},
+      {4, 2, 0},
 
-    std::filesystem::create_directories(cDir);
-    std::ofstream sFile(cPath, std::ios::out | std::ios::trunc);
+      //{4, 0, 0},
+      //{4, 1, 0},
+      //{4, 2, 0},
 
-    sFile << "Randomized steps : \n\n";
-    for (const auto& randStep : randomList) {
-      sFile << randStep << '\n';
-      randomQueue.push(randStep);
-    }
+      {1, 0, 0},
+      {1, 1, 0},
+      {1, 2, 0},
+      {1, 2, 0},
 
-    sFile << "\n\n\nSteps to solve : \n\n";
-    while (!actionList.empty()) {
-      sFile << actionList.front() << '\n';
-      actionHistoryList.push(actionList.front());
-      actionList.pop_front();
-    }
+      //{1, 0, 0},
+      //{1, 1, 0},
+      //{1, 2, 0},
 
-    while (!actionHistoryList.empty()) {
-      actionList.push_front(actionHistoryList.top());
-      actionHistoryList.pop();
-    }
+      {3, 0, 0},
+      {3, 1, 0},
+      {3, 2, 0},
+      {3, 2, 0},
 
-    sFile.flush();
-    sFile.close();
+      //{3, 0, 0},
+      //{3, 1, 0},
+      //{3, 2, 0},
 
-    rubik.Reset();
+      {5, 0, 0},
+      {5, 1, 0},
+      {5, 2, 0},
+      {5, 2, 0},
+
+      //{5, 0, 0},
+      //{5, 1, 0},
+      //{5, 2, 0},
+
+      {2, 0, 0},
+      {2, 1, 0},
+      {2, 2, 0},
+      {2, 2, 0},
+
+      //{2, 0, 0},
+      //{2, 1, 0},
+      //{2, 2, 0},
+
+      {0, 0, 0},
+      {0, 1, 0},
+      {0, 2, 0},
+      {0, 2, 0},
+
+      //{0, 0, 0},
+      //{0, 1, 0},
+      //{0, 2, 0},
+    };
+
+
+    //std::filesystem::create_directories(cDir);
+    //std::ofstream sFile(cPath, std::ios::out | std::ios::trunc);
+
+    //sFile << "Randomized steps : \n\n";
+    //for (const auto& randStep : randomList) {
+      //sFile << randStep << '\n';
+    //  randomQueue.push(randStep);
+    //}
+
+    //sFile << "\n\n\nSteps to solve : \n\n";
+    //while (!actionList.empty()) {
+      //sFile << actionList.front() << '\n';
+    //  actionHistoryList.push(actionList.front());
+    //  actionList.pop_front();
+    //}
+
+    //while (!actionHistoryList.empty()) {
+    //  actionList.push_front(actionHistoryList.top());
+    //  actionHistoryList.pop();
+    //}
+
+    //sFile.flush();
+    //sFile.close();
+
+    //rubik.Reset();
   }
 
 
@@ -231,7 +294,7 @@ int main() {
   bool *rotatingBuffer = nullptr;
   bool rotatingAll = false;
   bool reverseAnimation = false;
-  bool randomized = false;
+  bool randomized = true;
 
   const char* vertLocs[] = {"./shaders/shader.vert"};
   const char* geomLocs[] = {"./shaders/shader.geom"};
@@ -340,11 +403,11 @@ int main() {
 
 
   glClearColor(0.8, 0.8, 0.8, 1.0);
-  std::chrono::time_point prevAction = std::chrono::steady_clock::now();
+  std::chrono::time_point prevTime = std::chrono::steady_clock::now();
   while (!glfwWindowShouldClose(window)) {
     std::chrono::time_point cur = std::chrono::steady_clock::now();
-    deltaTime = (float)std::chrono::duration_cast<std::chrono::milliseconds>(cur - prevAction).count() / 1000.f;
-    prevAction = std::chrono::steady_clock::now();
+    deltaTime = (float)std::chrono::duration_cast<std::chrono::milliseconds>(cur - prevTime).count() / 1000.f;
+    prevTime = std::chrono::steady_clock::now();
 
 
     glfwPollEvents();
@@ -484,11 +547,11 @@ int main() {
           if (!reverseAnimation) {
             curAction = actionList.front();
 
-            actionHistoryList.push(curAction.Reversed());
+            actionHistoryList.push({curAction.face, curAction.ReversedDirection(), curAction.layer});
             actionList.pop_front();
           } else {
             curAction = actionHistoryList.top();
-            actionList.push_front(curAction.Reversed());
+            actionList.push_front({curAction.face, curAction.ReversedDirection(), curAction.layer});
             actionHistoryList.pop();
           }
         } else {
@@ -502,25 +565,25 @@ int main() {
         }
 
         fillRotatingBuffer(rotatingBuffer, curAction);
-        rubik.Rotate(curAction.face, curAction.direction, curAction.layer);
+        rubik.Rotate(curAction.face, curAction.direction/*, curAction.layer*/);
 
-        if (curAction.face == 'b') {
+        if (curAction.face == 0) {
           rotateAxis = glm::vec3(0, 0, -1);
           rotatePlane = 2 * rubikRE + curAction.layer;
 
-        } else if (curAction.face == 'f') {
+        } else if (curAction.face == 4) {
           rotateAxis = glm::vec3(0, 0, 1);
           rotatePlane = 3 * rubikRE - 1 - curAction.layer;
 
-        } else if (curAction.face == 'l') {
+        } else if (curAction.face == 1) {
           rotateAxis = glm::vec3(-1, 0, 0);
           rotatePlane = curAction.layer;
 
-        } else if (curAction.face == 'r') {
+        } else if (curAction.face == 3) {
           rotateAxis = glm::vec3(1, 0, 0);
           rotatePlane = rubikRE - 1 - curAction.layer;
 
-        } else if (curAction.face == 'u') {
+        } else if (curAction.face == 5) {
           rotateAxis = glm::vec3(0, 1, 0);
           rotatePlane = 2 * rubikRE - 1 - curAction.layer;
 
@@ -531,9 +594,9 @@ int main() {
 
 
         float fAngle = 0;
-        if (curAction.direction == 'c')
+        if (curAction.direction == 0)
           fAngle = -90.f;
-        else if (curAction.direction == 'a')
+        else if (curAction.direction == 1)
           fAngle = 90.f;
         else
           fAngle = 180.f;
@@ -672,7 +735,7 @@ void fillRotatingBuffer(bool* buffer, RubikActionSingle action) {
 
 
   // Back
-  if (action.face == 'b') {
+  if (action.face == 0) {
     if (action.layer == 0) {
       for (unsigned int i = 0; i < rubikFace; i++)
         back[i] = true;
@@ -686,7 +749,7 @@ void fillRotatingBuffer(bool* buffer, RubikActionSingle action) {
 
 
     // Left
-  } else if (action.face == 'l') {
+  } else if (action.face == 1) {
     if (action.layer == 0) {
       for (unsigned int i = 0; i < rubikFace; i++)
         left[i] = true;
@@ -700,7 +763,7 @@ void fillRotatingBuffer(bool* buffer, RubikActionSingle action) {
 
 
     // Down
-  } else if (action.face == 'd') {
+  } else if (action.face == 2) {
     if (action.layer == 0) {
       for (unsigned int i = 0; i < rubikFace; i++)
         down[i] = true;
@@ -714,7 +777,7 @@ void fillRotatingBuffer(bool* buffer, RubikActionSingle action) {
 
 
     // Right
-  } else if (action.face == 'r') {
+  } else if (action.face == 3) {
     if (action.layer == 0) {
       for (unsigned int i = 0; i < rubikFace; i++)
         right[i] = true;
@@ -728,7 +791,7 @@ void fillRotatingBuffer(bool* buffer, RubikActionSingle action) {
 
 
     // Front
-  } else if (action.face == 'f') {
+  } else if (action.face == 4) {
     if (action.layer == 0) {
       for (unsigned int i = 0; i < rubikFace; i++)
         front[i] = true;
@@ -742,7 +805,7 @@ void fillRotatingBuffer(bool* buffer, RubikActionSingle action) {
 
 
     // Up
-  } else if (action.face == 'u') {
+  } else if (action.face == 5) {
     if (action.layer == 0) {
       for (unsigned int i = 0; i < rubikFace; i++)
         up[i] = true;
@@ -757,7 +820,7 @@ void fillRotatingBuffer(bool* buffer, RubikActionSingle action) {
 }
 
 
-void fillRubikColorBuffer(Vector4* colors, RubikCube* cube) {
+void fillRubikColorBuffer(Vector4* colors, CornerCube* cube) {
   if (!colors || !cube)
     return;
 
